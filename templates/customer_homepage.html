@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Service Booking</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <style>
+      .available-services {
+        padding: 20px;
+      }
+      .service-card {
+        background-color: #d1c4e9;
+        position: relative;
+        width: 14rem;
+        height: 19rem;
+        border-radius: 10px;
+        padding: 1rem;
+        color: #333;
+        text-align: center;
+        margin: 10px;
+      }
+      .service-card h1 {
+        font-size: 2rem;
+      }
+      .service-card h4 {
+        font-size: 1rem;
+        color: white;
+        margin-top: 0.5rem;
+      }
+      .service-history {
+        margin-top: 30px;
+      }
+      table {
+        width: 100%;
+      }
+      th,
+      td {
+        padding: 10px;
+        text-align: center;
+      }
+      .btn-close {
+        padding: 8px 16px;
+        background-color: #ff9800; /* Orange */
+        color: white;
+        border: none;
+        border-radius: 8px; /* Rounded corners */
+        font-weight: bold;
+        cursor: pointer;
+        text-align: center;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      .btn-close:focus {
+        outline: none;
+        box-shadow: 0 0 10px rgba(255, 152, 0, 0.8); /* Glow effect on focus */
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'customer_navbar.html' %}
+
+    <!-- Available Services Section -->
+    <div class="container available-services">
+      <h2>Available Services</h2>
+      <div class="d-flex flex-wrap">
+        {% for service in services %}
+        <div class="service-card">
+          <h1>{{ service.name }}</h1>
+          <h4>Time Required: {{ service.time_required }} hrs</h4>
+          <p>{{service.description}}</p>
+          <form
+            action="{{ url_for('customer.get_providers') }}"
+            method="GET"
+            style="display: inline"
+          >
+            <input
+              type="hidden"
+              name="service_name"
+              value="{{ service.name }}"
+            />
+            <button
+              style="
+                padding: 0.5rem 1rem;
+                position: absolute;
+                bottom: 10%;
+                right: 30%;
+                background-color: #4bbf70;
+                color: white;
+                border: 2px solid #4bbf70;
+                border-radius: 0.25rem;
+                font-size: 1rem;
+                cursor: pointer;
+                transition: background-color 0.3s, border-color 0.3s;
+                outline: none;
+              "
+              type="submit"
+            >
+              Book
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Service History Table -->
+    <div class="container service-history">
+      <h3 class="text-center">Service History</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Service Name</th>
+            <th>Professional Name</th>
+            <th>Email</th>
+            <th>Remarks</th>
+            <th>Status</th>
+            <th>Close/Delete Request</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in records %}
+          <tr>
+            <td>{{ record.id }}</td>
+            <td>{{ record.service.name }}</td>
+            <td>
+              {{ record.professional.fullname if record.professional else 'Not
+              Assigned' }}
+            </td>
+            <td>
+              {{ record.professional.email if record.professional else 'N/A' }}
+            </td>
+            <td>{{ record.remarks }}</td>
+            <td>{{ record.status }}</td>
+            <td>
+              {% if record.status == 'requested' %}
+              <!-- Show Delete button when status is 'requested' -->
+              <form
+                action="{{ url_for('customer.delete_service') }}"
+                method="POST"
+                style="display: inline"
+              >
+                <input
+                  type="hidden"
+                  name="service_id"
+                  value="{{ record.id }}"
+                />
+                <button type="submit" class="btn-delete">Delete</button>
+              </form>
+              {% elif record.status == 'accepted' %}
+              <!-- Show Close button when status is 'accepted' -->
+              <form
+                action="{{ url_for('customer.close_service', service_id=record.id) }}"
+                method="GET"
+                style="display: inline"
+              >
+                <button type="submit" class="btn-close">Close</button>
+              </form>
+
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

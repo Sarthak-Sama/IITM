@@ -1,0 +1,44 @@
+<nav
+  style="
+    height: 5rem;
+    background-color: #8a4af3;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+  "
+>
+  <div>A to Z House Services</div>
+  <div>
+    <a
+      style="text-decoration: none; color: white; margin: 0 1vw"
+      href="{{ url_for('customer.customer_homepage')}}"
+      >Home</a
+    >
+    <a
+      style="text-decoration: none; color: white; margin: 0 1vw"
+      href="{{ url_for('customer.search_page')}}"
+      >Search</a
+    >
+    <a
+      style="text-decoration: none; color: white; margin: 0 1vw"
+      href="{{ url_for('customer.summary_page')}} "
+      >Summary</a
+    >
+  </div>
+  <div>
+    <a
+      style="
+        text-decoration: none;
+        color: white;
+        margin: 0 1vw;
+        background-color: rgb(252, 94, 94);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+      "
+      href="{{url_for('auth.logout')}}"
+      >logout</a
+    >
+  </div>
+</nav>

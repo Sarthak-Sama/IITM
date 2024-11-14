@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h2 {
+        text-align: center;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+      }
+      td {
+        text-align: center;
+      }
+      .new-service {
+        text-align: right;
+        margin-bottom: 20px;
+      }
+      .new-service a {
+        padding: 10px 20px;
+        border: none;
+        background-color: #4caf50;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+      }
+      .new-service a:hover {
+        background-color: #45a049;
+      }
+      /* Style buttons inside forms */
+      .edit-btn,
+      button {
+        padding: 8px 16px;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        font-size: 14px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+      .edit-btn:hover,
+      button:hover {
+        background-color: #0056b3;
+        transform: scale(1.05);
+      }
+      .edit-btn:active,
+      button:active {
+        background-color: #004085;
+      }
+      /* Mobile styles */
+      @media (max-width: 600px) {
+        .new-service {
+          text-align: center;
+        }
+        table,
+        th,
+        td {
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'admin_navbar.html' %}
+    <div class="container">
+      <h2>Admin Dashboard</h2>
+
+      <div class="new-service">
+        <a href="{{ url_for('admin.add_service') }}">Add a New Service</a>
+      </div>
+
+      <!-- Services Table -->
+      <h3>Services</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Service Name</th>
+          <th>Base Price</th>
+          <th>Action</th>
+        </tr>
+        {% for service in services %}
+        <tr>
+          <td>{{ service.id }}</td>
+          <td>{{ service.name }}</td>
+          <td>${{ service.base_price }}</td>
+          <td>
+            <a
+              class="edit-btn"
+              style="text-decoration: none"
+              href="{{url_for('admin.edit_service', service_id=service.id)}}"
+              >Edit</a
+            >
+            <form
+              action="{{ url_for('admin.delete_service', service_id=service.id, service_type=service.name) }}"
+              method="POST"
+              style="display: inline"
+            >
+              <button type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      <!-- Professionals Table -->
+      <h3>Professionals</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Experience</th>
+          <th>Service Name</th>
+          <th>Email</th>
+          <th>Verify</th>
+          <th>Block/Unblock</th>
+        </tr>
+        {% for professional in professionals %}
+        <tr>
+          <td>{{ professional.id }}</td>
+          <td>{{ professional.fullname }}</td>
+          <td>{{ professional.experience }} years</td>
+          <td>{{ professional.service_type }}</td>
+          <td>{{ professional.email }}</td>
+          <td>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 1rem;
+              "
+            >
+              {% if not professional.is_verified %}
+              <form
+                action="{{ url_for('admin.verify_provider', professional_id=professional.id) }}"
+                method="POST"
+              >
+                <button type="submit">Approve</button>
+              </form>
+              {% else %}
+              <form
+                action="{{ url_for('admin.reject_provider', professional_id=professional.id) }}"
+                method="POST"
+              >
+                <button type="submit">Reject</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+
+          <td>
+            <div style="display: flex; justify-content: center">
+              {% if not professional.is_blacklisted %}
+              <form
+                action="{{ url_for('admin.block_professional', professional_id=professional.id) }}"
+                method="POST"
+              >
+                <button type="submit">Block</button>
+              </form>
+              {% else %}
+              <form
+                action="{{ url_for('admin.unblock_professional', professional_id=professional.id) }}"
+                method="POST"
+              >
+                <button type="submit">Unblock</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      <!-- Service Requests Table -->
+      <h3>Service Requests</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Assigned Professional</th>
+          <th>Requested Date</th>
+          <th>Status</th>
+        </tr>
+        {% for request in service_requests %}
+        <tr>
+          <td>{{ request.id }}</td>
+          <td>{{ request.professional.name }}</td>
+          <td>{{ request.requested_date }}</td>
+          <td>{{ request.status }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      <!-- Customers Table -->
+      <h3>Customers</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Email</th>
+          <th>Name</th>
+          <th>Action</th>
+        </tr>
+        {% for customer in customers %}
+        <tr>
+          <td>{{ customer.id }}</td>
+          <td>{{ customer.email }}</td>
+          <td>{{ customer.fullname }}</td>
+          <td>
+            {% if not customer.is_blacklisted %}
+            <form
+              action="{{ url_for('admin.block_customer', customer_id=customer.id) }}"
+              method="POST"
+            >
+              <button type="submit">Block</button>
+            </form>
+            {% else %}
+            <form
+              action="{{ url_for('admin.unblock_customer', customer_id=customer.id) }}"
+              method="POST"
+            >
+              <button type="submit">Unblock</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </body>
+</html>

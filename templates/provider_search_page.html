@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Service Professional Search Requests</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      /* Basic styling */
+      .navbar {
+        background-color: #f0f4ff;
+        padding: 10px;
+        font-size: 18px;
+      }
+      .search-section {
+        margin: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+      }
+      .search-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    {% include 'provider_navbar.html' %}
+
+    <!-- Search Form -->
+    <div class="search-section">
+      <h2>Search Service Requests</h2>
+      <form method="POST" action="{{ url_for('professional.search_page') }}">
+        <div class="search-bar">
+          <label for="search_type">Search by:</label>
+          <select
+            id="search_type"
+            name="search_type"
+            onchange="toggleInputType()"
+          >
+            <option value="pincode">Pincode</option>
+            <option value="date">Date</option>
+          </select>
+
+          <!-- Input field that will change based on selected search type -->
+          <input
+            type="text"
+            id="search_query"
+            name="search_query"
+            placeholder="Enter your search query (e.g. 110001, 2024-11-13)"
+          />
+          <button type="submit">Search</button>
+        </div>
+      </form>
+
+      <!-- Search Results Table -->
+      {% if results %}
+      <h3>Search Results (Based on {{ search_type }})</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Customer Name</th>
+            <th>Service Type</th>
+            <th>Requested Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for result in results %}
+          <tr>
+            <td>{{ result.id }}</td>
+            <td>{{ result.customer.fullname }}</td>
+            <td>{{ result.service.name}}</td>
+            <td>{{ result.date_of_request }}</td>
+            <td>{{ result.status }}</td>
+            <td style="position: relative">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 2rem;
+                "
+              >
+                <form
+                  action="{{ url_for('professional.accept_request', request_id=result.id) }}"
+                  method="POST"
+                  style="display: inline"
+                >
+                  <input
+                    type="hidden"
+                    name="request_id"
+                    value="{{ result.id }}"
+                  />
+
+                  <button
+                    style="
+                      padding: 0.25rem 0.5rem;
+                      background-color: #4bbf70;
+                      color: white;
+                      border: 2px solid #4bbf70;
+                      border-radius: 0.25rem;
+                      font-size: 1rem;
+                      cursor: pointer;
+                      transition: background-color 0.3s, border-color 0.3s;
+                      outline: none;
+                    "
+                    type="submit"
+                  >
+                    Accept
+                  </button>
+                </form>
+                <form
+                  action="{{ url_for('professional.reject_request', request_id=result.id) }}"
+                  method="POST"
+                  style="display: inline"
+                >
+                  <button
+                    style="
+                      padding: 0.25rem 0.5rem;
+                      background-color: #bf4b4b;
+                      color: white;
+                      border: 2px solid #bf4b4b;
+                      border-radius: 0.25rem;
+                      font-size: 1rem;
+                      cursor: pointer;
+                      transition: background-color 0.3s, border-color 0.3s;
+                      outline: none;
+                    "
+                    type="submit"
+                    class="reject-btn"
+                  >
+                    Reject
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>No results found.</p>
+      {% endif %}
+    </div>
+
+    <script>
+      // JavaScript to dynamically change the input type based on the selected search type
+      function toggleInputType() {
+        var searchType = document.getElementById("search_type").value;
+        var searchQueryInput = document.getElementById("search_query");
+
+        if (searchType === "date") {
+          // Change input type to date if "Date" is selected
+          searchQueryInput.type = "date";
+        } else {
+          // Change input type back to text for other search types
+          searchQueryInput.type = "text";
+        }
+      }
+
+      // Initial call to set the correct input type on page load
+      toggleInputType();
+    </script>
+  </body>
+</html>

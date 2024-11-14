@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Summary</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f9f9f9;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      h2 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      h3 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        color: #333;
+      }
+
+      canvas {
+        display: block;
+        margin: 0 auto 30px;
+        max-width: 100%;
+        height: auto;
+      }
+
+      .chart-section {
+        margin-bottom: 40px;
+      }
+
+      .summary-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+      }
+
+      .summary-info div {
+        padding: 10px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+        width: 30%;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'admin_navbar.html' %}
+    <div class="container">
+      <h2>Summary</h2>
+
+      <!-- Summary Information -->
+      <div class="summary-info">
+        <div>
+          <h4>Total Customers</h4>
+          <p>{{ total_customers }}</p>
+        </div>
+        <div>
+          <h4>Total Professionals</h4>
+          <p>{{ total_professionals }}</p>
+        </div>
+        <div>
+          <h4>Total Service Requests</h4>
+          <p>{{ total_requests }}</p>
+        </div>
+      </div>
+
+      <!-- Average Rating -->
+      <h3>
+        Average Professional Rating: {{ average_rating if average_rating is not
+        none else "No ratings available" }}
+      </h3>
+
+      <!-- Customer Ratings Pie Chart -->
+      <div class="chart-section">
+        <h3>Overall Customer Ratings</h3>
+        <canvas id="ratingsChart" width="400" height="200"></canvas>
+      </div>
+
+      <!-- Service Requests Summary Bar Chart -->
+      <div class="chart-section">
+        <h3>Service Requests Summary</h3>
+        <canvas id="requestsChart" width="400" height="200"></canvas>
+      </div>
+
+      <script>
+        // Pie chart for customer ratings
+        var ratingsData = {{ customer_ratings_data | tojson }};
+        var ctx = document.getElementById("ratingsChart").getContext("2d");
+        var ratingsChart = new Chart(ctx, {
+            type: "pie",
+            data: {
+                labels: Object.keys(ratingsData),
+                datasets: [{
+                    label: "Customer Ratings",
+                    data: Object.values(ratingsData),
+                    backgroundColor: ["green", "blue", "yellow", "red", "purple"],
+                }]
+            }
+        });
+
+        // Bar chart for service requests
+        var requestsData = {{ service_requests_data | tojson }};
+        var ctx2 = document.getElementById("requestsChart").getContext("2d");
+        var requestsChart = new Chart(ctx2, {
+            type: "bar",
+            data: {
+                labels: Object.keys(requestsData),
+                datasets: [{
+                    label: "Service Requests",
+                    data: Object.values(requestsData),
+                    backgroundColor: ["orange", "blue", "green"],
+                }]
+            }
+        });
+      </script>
+    </div>
+  </body>
+</html>

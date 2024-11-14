@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Search Page</title>
+    <!-- Include CSS or Tailwind/Bootstrap here for styling -->
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      /* Basic styling */
+      .navbar {
+        background-color: #f0f4ff;
+        padding: 10px;
+        font-size: 18px;
+      }
+      .search-section {
+        margin: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+      }
+      .search-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    {% include 'admin_navbar.html' %}
+
+    <!-- Search Form -->
+    <div class="search-section">
+      <h2>Search Functionality</h2>
+      <form method="POST" action="{{ url_for('admin.search_page') }}">
+        <div class="search-bar">
+          <label for="search_type">Search by:</label>
+          <select id="search_type" name="search_type">
+            <option value="id">ID</option>
+            <option value="service_type">Service Type</option>
+            <option value="name">Name</option>
+          </select>
+
+          <input
+            type="text"
+            name="search_query"
+            placeholder="Search text (e.g. Closed)"
+          />
+          <button type="submit">Search</button>
+        </div>
+      </form>
+
+      <!-- Search Results Table -->
+      {% if results %}
+      <h3>Search Results (Based of ({{ search_type }}))</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Experience</th>
+            <th>Service Name</th>
+            <th>Rating</th>
+            <th>Address</th>
+            <th>Verify</th>
+            <th>Block/Unblock</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for result in results %}
+          <tr>
+            <td>{{ result.id }}</td>
+            <td>{{ result.fullname }}</td>
+            <td>{{ result.experience }}</td>
+            <td>{{ result.service_type }}</td>
+            <td>{{ result.rating }}</td>
+            <td>{{ result.address }}</td>
+            <td>
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 1rem;
+                "
+              >
+                {% if not result.is_verified %}
+                <!-- Show "Approve" button if not verified -->
+                <form
+                  action="{{ url_for('admin.verify_provider', professional_id=result.id) }}"
+                  method="POST"
+                >
+                  <button type="submit">Approve</button>
+                </form>
+                {% else %}
+                <!-- Show "Reject" button if verified -->
+                <form
+                  action="{{ url_for('admin.reject_provider', professional_id=result.id) }}"
+                  method="POST"
+                >
+                  <button type="submit">Reject</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+
+            <td>
+              <div style="display: flex; justify-content: center">
+                {% if not result.is_blacklisted %}
+                <form
+                  action="{{ url_for('admin.block_professional', professional_id=result.id) }}"
+                  method="POST"
+                >
+                  <button type="submit">Block</button>
+                </form>
+                {% else %}
+                <form
+                  action="{{ url_for('admin.unblock_professional', professional_id=result.id) }}"
+                  method="POST"
+                >
+                  <button type="submit">Unblock</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>No results found.</p>
+      {% endif %}
+    </div>
+  </body>
+</html>

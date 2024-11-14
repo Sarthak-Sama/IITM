@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Search Page</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      /* Basic styling */
+      .navbar {
+        background-color: #f0f4ff;
+        padding: 10px;
+        font-size: 18px;
+      }
+      .search-section {
+        margin: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+      }
+      .search-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    {% include 'customer_navbar.html' %}
+
+    <!-- Search Form -->
+    <div class="search-section">
+      <h2>Search Service Professionals</h2>
+      <form method="POST" action="{{ url_for('customer.search_page') }}">
+        <div class="search-bar">
+          <label for="search_type">Search by:</label>
+          <select id="search_type" name="search_type">
+            <option value="pincode">Pincode</option>
+            <option value="name">Name</option>
+            <option value="service_type">Service Type</option>
+          </select>
+
+          <input
+            type="text"
+            name="search_query"
+            placeholder="Enter your search query (e.g. 110001, John, Electrician)"
+          />
+          <button type="submit">Search</button>
+        </div>
+      </form>
+
+      <!-- Search Results Table -->
+      {% if results %}
+      <h3>Search Results (Based on {{ search_type }})</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Service Type</th>
+            <th>Experience</th>
+            <th>Rating</th>
+            <th>Address</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for result in results %}
+          <tr>
+            <td>{{ result.id }}</td>
+            <td>{{ result.fullname }}</td>
+            <td>{{ result.service_type }}</td>
+            <td>{{ result.experience }}</td>
+            <td>{{ result.rating }}</td>
+            <td>{{ result.address }}</td>
+            <td style="position: relative">
+              <form
+                action="{{ url_for('customer.request_service') }}"
+                method="POST"
+                style="display: inline"
+              >
+                <input
+                  type="hidden"
+                  name="service_id"
+                  value="{{ result.service_id }}"
+                />
+                <input
+                  type="hidden"
+                  name="professional_id"
+                  value="{{ result.id }}"
+                />
+
+                <button
+                  style="
+                    padding: 0.25rem 0.5rem;
+                    position: absolute;
+                    bottom: 10%;
+                    right: 30%;
+                    background-color: #4bbf70;
+                    color: white;
+                    border: 2px solid #4bbf70;
+                    border-radius: 0.25rem;
+                    font-size: 1rem;
+                    cursor: pointer;
+                    transition: background-color 0.3s, border-color 0.3s;
+                    outline: none;
+                  "
+                  type="submit"
+                >
+                  Book
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>No results found.</p>
+      {% endif %}
+    </div>
+  </body>
+</html>
