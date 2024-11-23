@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for
+from flask import Flask
 from models import db  # Import db from models, instead of initializing here
 from routes import admin_bp, customer_bp, professional_bp, auth_bp
 
@@ -20,4 +20,4 @@ if __name__ == '__main__':
             db.create_all()  # Creates the database tables if they don't exist
         except Exception as e:
             print(f"Error creating database tables: {e}")  # Error handling for database creation
-    app.run(debug=True)
+    app.run()

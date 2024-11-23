@@ -4,14 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Service Booking</title>
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-    />
     <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+
+      .container {
+        width: 80%;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
       .available-services {
         padding: 20px;
       }
+      .service-grid {
+        display: flex;
+        overflow-y: auto;
+        flex-wrap: wrap;
+        max-height: 60vh;
+      }
+
       .service-card {
         background-color: #d1c4e9;
         position: relative;
@@ -22,41 +38,109 @@
         color: #333;
         text-align: center;
         margin: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       }
+
       .service-card h1 {
-        font-size: 2rem;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
       }
+
       .service-card h4 {
         font-size: 1rem;
         color: white;
         margin-top: 0.5rem;
       }
+
+      .service-card p {
+        font-size: 0.9rem;
+        color: #333;
+        margin-top: 0.5rem;
+      }
+
+      .service-card button {
+        padding: 0.5rem 1rem;
+        position: absolute;
+        bottom: 10%;
+        right: 35%;
+        background-color: #4bbf70;
+        color: white;
+        border: 2px solid #4bbf70;
+        border-radius: 0.25rem;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s, border-color 0.3s;
+        outline: none;
+      }
+
+      .service-card button:hover {
+        background-color: #3a9c5f;
+        border-color: #3a9c5f;
+      }
+
       .service-history {
         margin-top: 30px;
       }
-      table {
-        width: 100%;
+
+      h2,
+      h3 {
+        text-align: center;
+        margin-bottom: 20px;
       }
+
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+        margin-top: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
       th,
       td {
         padding: 10px;
         text-align: center;
+        border-bottom: 1px solid #ddd;
       }
+
+      th {
+        background-color: #f4f4f4;
+      }
+
       .btn-close {
         padding: 8px 16px;
         background-color: #ff9800; /* Orange */
         color: white;
         border: none;
-        border-radius: 8px; /* Rounded corners */
+        border-radius: 8px;
         font-weight: bold;
         cursor: pointer;
-        text-align: center;
         transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      .btn-close:hover {
+        background-color: #e68900;
       }
 
       .btn-close:focus {
         outline: none;
         box-shadow: 0 0 10px rgba(255, 152, 0, 0.8); /* Glow effect on focus */
+      }
+
+      .btn-delete {
+        padding: 8px 16px;
+        background-color: #f44336; /* Red */
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      .btn-delete:hover {
+        background-color: #d32f2f;
       }
     </style>
   </head>
@@ -66,12 +150,15 @@
     <!-- Available Services Section -->
     <div class="container available-services">
       <h2>Available Services</h2>
-      <div class="d-flex flex-wrap">
+      <div class="service-grid">
         {% for service in services %}
         <div class="service-card">
           <h1>{{ service.name }}</h1>
           <h4>Time Required: {{ service.time_required }} hrs</h4>
           <p>{{service.description}}</p>
+          <h3 style="text-align: center">
+            Base Price: ₹{{service.base_price}}
+          </h3>
           <form
             action="{{ url_for('customer.get_providers') }}"
             method="GET"
@@ -82,25 +169,7 @@
               name="service_name"
               value="{{ service.name }}"
             />
-            <button
-              style="
-                padding: 0.5rem 1rem;
-                position: absolute;
-                bottom: 10%;
-                right: 30%;
-                background-color: #4bbf70;
-                color: white;
-                border: 2px solid #4bbf70;
-                border-radius: 0.25rem;
-                font-size: 1rem;
-                cursor: pointer;
-                transition: background-color 0.3s, border-color 0.3s;
-                outline: none;
-              "
-              type="submit"
-            >
-              Book
-            </button>
+            <button type="submit">Book</button>
           </form>
         </div>
         {% endfor %}
@@ -109,7 +178,7 @@
 
     <!-- Service History Table -->
     <div class="container service-history">
-      <h3 class="text-center">Service History</h3>
+      <h3>Service History</h3>
       <table class="table">
         <thead>
           <tr>
@@ -160,7 +229,6 @@
               >
                 <button type="submit" class="btn-close">Close</button>
               </form>
-
               {% endif %}
             </td>
           </tr>

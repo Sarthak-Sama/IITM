@@ -1,4 +1,6 @@
-#!/home/tensai/IITM/venv/bin/python3
+#!/bin/sh
+'''exec' "/home/tensai/MAD-1 Root Folder/Code/venv/bin/python" "$0" "$@"
+' '''
 # -*- coding: utf-8 -*-
 import re
 import sys

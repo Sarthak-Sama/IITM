@@ -81,8 +81,8 @@
 
       <!-- Average Rating -->
       <h3>
-        Average Professional Rating: {{ average_rating if average_rating is not
-        none else "No ratings available" }}
+        Average Professional Rating: {{ average_rating | round(1) if
+        average_rating is not none else "No ratings available" }}
       </h3>
 
       <!-- Customer Ratings Pie Chart -->

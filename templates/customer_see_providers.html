@@ -4,21 +4,92 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Service Booking</title>
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-    />
     <style>
-      .service-history {
-        margin-top: 30px;
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
       }
-      table {
+      .container {
+        width: 80%;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h3 {
+        text-align: center;
+        color: #333;
+      }
+      .table {
         width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: white;
       }
       th,
       td {
-        padding: 10px;
+        padding: 12px;
         text-align: center;
+        border: 1px solid #ddd;
+      }
+      th {
+        background-color: #f2f2f2;
+        color: #333;
+      }
+      td {
+        color: #555;
+      }
+      .btn-book {
+        padding: 0.5rem 1rem;
+        background-color: #4bbf70;
+        color: white;
+        border: 2px solid #4bbf70;
+        border-radius: 0.25rem;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s, border-color 0.3s;
+        outline: none;
+      }
+      .btn-book:hover {
+        background-color: #45a05e;
+        border-color: #45a05e;
+      }
+      .service-history {
+        margin-top: 30px;
+      }
+      .btn-close {
+        padding: 8px 16px;
+        background-color: #ff9800; /* Orange */
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      .btn-close:hover {
+        background-color: #e68900;
+      }
+
+      .btn-close:focus {
+        outline: none;
+        box-shadow: 0 0 10px rgba(255, 152, 0, 0.8); /* Glow effect on focus */
+      }
+
+      .btn-delete {
+        padding: 8px 16px;
+        background-color: #f44336; /* Red */
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      .btn-delete:hover {
+        background-color: #d32f2f;
       }
     </style>
   </head>
@@ -27,12 +98,12 @@
 
     <div class="container available-services">
       <h3>Available Professionals</h3>
-      <table class="table table-bordered">
+      <table class="table">
         <thead>
           <tr>
             <th>ID</th>
             <th>Professional Name</th>
-            <th>email</th>
+            <th>Email</th>
             <th>Experience</th>
             <th>Rating</th>
             <th>Book</th>
@@ -46,7 +117,7 @@
             <td>{{ provider.email }}</td>
             <td>{{provider.experience}}</td>
             <td>{{ provider.rating if provider.rating else 'N/A' }}</td>
-            <td style="position: relative">
+            <td>
               <form
                 action="{{ url_for('customer.request_service')}}"
                 method="POST"
@@ -62,25 +133,7 @@
                   name="professional_id"
                   value="{{ provider.id }}"
                 />
-                <button
-                  style="
-                    padding: 0.25rem 0.5rem;
-                    position: absolute;
-                    bottom: 10%;
-                    right: 30%;
-                    background-color: #4bbf70;
-                    color: white;
-                    border: 2px solid #4bbf70;
-                    border-radius: 0.25rem;
-                    font-size: 1rem;
-                    cursor: pointer;
-                    transition: background-color 0.3s, border-color 0.3s;
-                    outline: none;
-                  "
-                  type="submit"
-                >
-                  Book
-                </button>
+                <button class="btn-book" type="submit">Book</button>
               </form>
             </td>
           </tr>
@@ -91,15 +144,17 @@
 
     <!-- Service History Table -->
     <div class="container service-history">
-      <h3 class="text-center">Service History</h3>
-      <table class="table table-bordered">
+      <h3>Service History</h3>
+      <table class="table">
         <thead>
           <tr>
             <th>ID</th>
             <th>Service Name</th>
             <th>Professional Name</th>
-            <th>Phone No.</th>
+            <th>Email</th>
+            <th>Remarks</th>
             <th>Status</th>
+            <th>Close/Delete Request</th>
           </tr>
         </thead>
         <tbody>
@@ -108,13 +163,40 @@
             <td>{{ record.id }}</td>
             <td>{{ record.service.name }}</td>
             <td>
-              {{ record.professional.name if record.professional else 'Not
+              {{ record.professional.fullname if record.professional else 'Not
               Assigned' }}
             </td>
             <td>
-              {{ record.professional.phone if record.professional else 'N/A' }}
+              {{ record.professional.email if record.professional else 'N/A' }}
             </td>
+            <td>{{ record.remarks }}</td>
             <td>{{ record.status }}</td>
+            <td>
+              {% if record.status == 'requested' %}
+              <!-- Show Delete button when status is 'requested' -->
+              <form
+                action="{{ url_for('customer.delete_service') }}"
+                method="POST"
+                style="display: inline"
+              >
+                <input
+                  type="hidden"
+                  name="service_id"
+                  value="{{ record.id }}"
+                />
+                <button type="submit" class="btn-delete">Delete</button>
+              </form>
+              {% elif record.status == 'accepted' %}
+              <!-- Show Close button when status is 'accepted' -->
+              <form
+                action="{{ url_for('customer.close_service', service_id=record.id) }}"
+                method="GET"
+                style="display: inline"
+              >
+                <button type="submit" class="btn-close">Close</button>
+              </form>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>

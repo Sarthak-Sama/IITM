@@ -109,7 +109,7 @@
         <tr>
           <td>{{ service.id }}</td>
           <td>{{ service.name }}</td>
-          <td>${{ service.base_price }}</td>
+          <td>₹{{ service.base_price }}</td>
           <td>
             <a
               class="edit-btn"
@@ -198,25 +198,6 @@
         {% endfor %}
       </table>
 
-      <!-- Service Requests Table -->
-      <h3>Service Requests</h3>
-      <table>
-        <tr>
-          <th>ID</th>
-          <th>Assigned Professional</th>
-          <th>Requested Date</th>
-          <th>Status</th>
-        </tr>
-        {% for request in service_requests %}
-        <tr>
-          <td>{{ request.id }}</td>
-          <td>{{ request.professional.name }}</td>
-          <td>{{ request.requested_date }}</td>
-          <td>{{ request.status }}</td>
-        </tr>
-        {% endfor %}
-      </table>
-
       <!-- Customers Table -->
       <h3>Customers</h3>
       <table>
@@ -248,6 +229,27 @@
             </form>
             {% endif %}
           </td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      <!-- Service Requests Table -->
+      <h3>Service Requests</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Assigned Professional</th>
+          <th>Customer Name</th>
+          <th>Requested Date</th>
+          <th>Status</th>
+        </tr>
+        {% for request in requests %}
+        <tr>
+          <td>{{ request.id }}</td>
+          <td>{{ request.professional.fullname }}</td>
+          <td>{{ request.customer.fullname }}</td>
+          <td>{{ request.date_of_request }}</td>
+          <td>{{ request.status }}</td>
         </tr>
         {% endfor %}
       </table>

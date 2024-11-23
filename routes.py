@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session, send_from_directory
 from models import db, Admin, Customer, ServiceProfessional, Service, ServiceRequest
-from sqlalchemy import func
 from collections import Counter
 from datetime import datetime
 
@@ -135,10 +134,8 @@ def register_provider():
         db.session.add(new_provider)
         db.session.commit()
 
-        # Set session data and redirect
-        session['user_id'] = new_provider.id
-        session['role'] = 'professional'
-        return redirect(url_for('professional.provider_dashboard'))
+        flash('You have registered. Now wait to get Verified!', 'danger')
+        return redirect(url_for('auth.login'))
     
     return render_template('provider_signup.html', services=services)
 
@@ -147,18 +144,19 @@ def register_provider():
 @auth_bp.route('/logout', methods=['GET', 'POST'])
 def logout():
     session.clear()
-    flash('You have been logged out!', 'info')
+    flash('You have been logged out!', 'danger')
     return redirect(url_for('auth.login'))
 
 
 
-# -------------- Authentication ----------------------- #
+# -------------- Authentication MiddleWares ----------------------- #
 
 @admin_bp.before_request
 def check_login_admin():
     if 'user_id' not in session or session['role'] != 'admin':
         flash('You need to log in first!', 'danger')
         return redirect(url_for('auth.login'))
+    
 
 # Professional blueprint
 @professional_bp.before_request
@@ -166,12 +164,23 @@ def check_login_professional():
     if 'user_id' not in session or session['role'] != 'professional':
         flash('You need to log in first!', 'danger')
         return redirect(url_for('auth.login'))
+    
+    user = ServiceProfessional.query.get(session['user_id'])
+    if user and user.is_blacklisted:
+        session.clear()
+        flash('Your account has been restricted. Contact support for assistance.', 'danger')
+        return redirect(url_for('auth.login'))
 
 # Customer blueprint
 @customer_bp.before_request
 def check_login_customer():
     if 'user_id' not in session or session['role'] != 'customer':
         flash('You need to log in first!', 'danger')
+        return redirect(url_for('auth.login'))
+    user = Customer.query.get(session['user_id'])
+    if user and user.is_blacklisted:
+        session.clear()
+        flash('Your account has been restricted. Contact support for assistance.', 'danger')
         return redirect(url_for('auth.login'))
 
 # ---------------- Admin Routes ----------------------- #
@@ -243,7 +252,7 @@ def edit_service(service_id):
 def delete_service(service_id):
     service_to_delete = Service.query.get(service_id)
     
-    service_type = service_to_delete.service_type
+    service_type = service_to_delete.name
     providers_to_delete = ServiceProfessional.query.filter_by(service_type=service_type).all()
 
     try:
@@ -290,7 +299,7 @@ def block_professional(professional_id):
         professional.is_blacklisted = True
         db.session.commit()
 
-    return redirect(url_for('admin.search_page'))
+    return redirect(url_for('admin.admin_dashboard'))
 
 # Unblock User
 @admin_bp.route('/unblock_professional/<int:professional_id>', methods=['POST'])
@@ -300,7 +309,7 @@ def unblock_professional(professional_id):
         professional.is_blacklisted = False  # Unblock professional
         db.session.commit()
 
-    return redirect(url_for('admin.search_page'))
+    return redirect(url_for('admin.admin_dashboard'))
 
 # Verify Provider (Professional)
 @admin_bp.route('/verify_provider/<int:professional_id>', methods=['POST'])
@@ -356,15 +365,18 @@ def summary_page():
     total_professionals = ServiceProfessional.query.count()
     total_requests = ServiceRequest.query.count()
 
-    # Calculate the average rating for professionals (if applicable)
-    average_rating = db.session.query(db.func.avg(ServiceProfessional.rating)).scalar()
+    # Calculate the average rating for service requests, excluding ratings of 0 or None
+    average_rating = db.session.query(
+        db.func.avg(ServiceRequest.rating)
+    ).filter(ServiceRequest.rating > 0).scalar()
+
     if average_rating is None:
         average_rating = "No ratings available"
 
-    # Query the ratings data from the database
+    # Query the ratings data from the ServiceRequest table, excluding ratings of 0 or None
     ratings_data = db.session.query(
-        db.func.count().label('count'), ServiceProfessional.rating
-    ).group_by(ServiceProfessional.rating).all()
+        db.func.count().label('count'), ServiceRequest.rating
+    ).filter(ServiceRequest.rating > 0).group_by(ServiceRequest.rating).all()
 
     # Prepare the ratings data (assuming ratings are stored as integer values like 1, 2, 3, 4, 5)
     customer_ratings_data = {
@@ -404,6 +416,7 @@ def summary_page():
         customer_ratings_data=customer_ratings_data,
         service_requests_data=service_requests_data
     )
+
 
 
 # -----------------Provider Routes-----------------------
@@ -446,7 +459,8 @@ def search_page():
             # Search by pincode
             results = ServiceRequest.query.join(Customer).filter(
                 Customer.pincode == search_query,
-                ServiceRequest.status == 'requested'
+                ServiceRequest.status == 'requested',
+                ServiceRequest.professional_id == session['user_id']
             ).all()
 
         elif search_type == 'date':
@@ -522,12 +536,6 @@ def summary_page():
                            service_requests_data=service_requests_data)
 
 
-    return render_template('provider_summary_page.html', 
-                           professional=professional, 
-                           ratings_data=ratings_data, 
-                           service_requests_data=service_requests_data)
-
-
 
 # --------------------- Customer Routes ----------------------- #
 
@@ -547,8 +555,8 @@ def get_providers():
     
     # Query based on the service name
     providers = ServiceProfessional.query.filter(ServiceProfessional.service_type == service_name).all()
-    
-    return render_template("customer_see_providers.html", providers=providers, service_name=service_name)
+    services_history = ServiceRequest.query.filter_by(customer_id=session['user_id'])
+    return render_template("customer_see_providers.html", providers=providers, service_name=service_name, records=services_history)
 
 # Service request route
 @customer_bp.route('/request_service', methods=['GET', 'POST'])
